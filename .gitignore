@@ -1,5 +1,6 @@
 # Home Assistant
 config/
+custom_components/polar/
 test.sh
 test.py
 

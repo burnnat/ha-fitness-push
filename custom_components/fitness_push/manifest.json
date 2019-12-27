@@ -2,10 +2,7 @@
   "domain": "fitness_push",
   "name": "Fitness Push",
   "documentation": "https://github.com/burnnat/ha-fitness-push",
-  "dependencies": [
-    "fitbit",
-    "polar"
-  ],
+  "dependencies": [],
   "codeowners": [],
   "requirements": [
     "polar_web==0.0.1"
