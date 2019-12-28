@@ -16,8 +16,11 @@ DOMAIN = 'fitness_push'
 FITBIT_DOMAIN = 'fitbit'
 
 POLAR_DOMAIN = 'polar'
+POLAR_ATTR_WEIGHT = 'weight'
+POLAR_ATTR_DATE = 'date'
 POLAR_CONF_EMAIL = 'email'
 POLAR_CONF_PASSWORD = 'password'
+POLAR_CONF_USER_ID = 'user_id'
 
 ATTR_DATA = 'data'
 
@@ -42,7 +45,7 @@ async def async_setup(hass, config):
         fitbit = await setup_fitbit(hass, config)
 
         if fitbit is not None:
-            def handle_fitbit_log_weight(call):
+            async def async_handle_fitbit_log_weight(call):
                 data = call.data.get(ATTR_DATA, None)
                 # _LOGGER.log(...)
                 """
@@ -51,21 +54,35 @@ async def async_setup(hass, config):
                 url = "{0}/{1}/user/-/body/log/weight.json".format(*fitbit._get_common_args())
                 return fitbit.make_request(url, data=data)
 
-            hass.services.register(FITBIT_DOMAIN, 'log_weight', handle_fitbit_log_weight)
+            hass.services.async_register(
+                FITBIT_DOMAIN, 'log_weight', async_handle_fitbit_log_weight)
 
     if POLAR_DOMAIN in data:
         polar = await setup_polar(hass, config)
 
         if polar is not None:
-            def handle_polar_log_weight(call):
-                data = call.data.get(ATTR_DATA, None)
-                # _LOGGER.log(...)
+            async def async_handle_polar_log_weight(call):
+                weight = float(call.data.get(POLAR_ATTR_WEIGHT))
+                date = call.data.get(POLAR_ATTR_DATE)
+
                 entry = hass.config_entries.async_entries(POLAR_DOMAIN)[0]
                 user_id = entry.data.get(POLAR_CONF_USER_ID)
 
-                await polar.log_weight(user_id, datetime.date(2019, 12, 24), 163.0)
+                _LOGGER.debug('Attempting to log weight to Polar: %s on %s', weight, date)
+                success = await polar.log_weight(user_id, date, weight)
 
-            hass.services.register(POLAR_DOMAIN, 'log_weight', handle_polar_log_weight)
+                if success:
+                    _LOGGER.info('Successfully pushed weight to Polar for date: %s', date)
+                else:
+                    _LOGGER.error('Failed to push weight to Polar for date: %s', date)
+            
+            schema = vol.Schema({
+                vol.Required(POLAR_ATTR_WEIGHT): vol.Coerce(float),
+                vol.Required(POLAR_ATTR_DATE): cv.date
+            })
+
+            hass.services.async_register(
+                POLAR_DOMAIN, 'log_weight', async_handle_polar_log_weight, schema=schema)
 
     return True
 
@@ -110,9 +127,6 @@ async def setup_polar(hass, config):
     _LOGGER.debug('Initializing Polar fitness push services')
 
     from polarweb import PolarWeb
-
-    # TODO: some way to import this constant directly?
-    POLAR_CONF_USER_ID = 'user_id'
 
     data = config.get(DOMAIN).get(POLAR_DOMAIN)
     email = data.get(POLAR_CONF_EMAIL)
