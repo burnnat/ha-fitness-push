@@ -14,8 +14,10 @@ _LOGGER = logging.getLogger(__name__)
 DOMAIN = 'fitness_push'
 
 FITBIT_DOMAIN = 'fitbit'
+FITBIT_SERVICE_LOG_WEIGHT = 'fitbit_log_weight'
 
 POLAR_DOMAIN = 'polar'
+POLAR_SERVICE_LOG_WEIGHT = 'polar_log_weight'
 POLAR_ATTR_WEIGHT = 'weight'
 POLAR_ATTR_DATE = 'date'
 POLAR_CONF_EMAIL = 'email'
@@ -55,7 +57,7 @@ async def async_setup(hass, config):
                 return fitbit.make_request(url, data=data)
 
             hass.services.async_register(
-                FITBIT_DOMAIN, 'log_weight', async_handle_fitbit_log_weight)
+                DOMAIN, FITBIT_SERVICE_LOG_WEIGHT, async_handle_fitbit_log_weight)
 
     if POLAR_DOMAIN in data:
         polar = await setup_polar(hass, config)
@@ -82,7 +84,7 @@ async def async_setup(hass, config):
             })
 
             hass.services.async_register(
-                POLAR_DOMAIN, 'log_weight', async_handle_polar_log_weight, schema=schema)
+                DOMAIN, POLAR_SERVICE_LOG_WEIGHT, async_handle_polar_log_weight, schema=schema)
 
     return True
 
