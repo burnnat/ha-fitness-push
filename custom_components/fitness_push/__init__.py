@@ -15,21 +15,22 @@ DOMAIN = 'fitness_push'
 
 FITBIT_DOMAIN = 'fitbit'
 FITBIT_SERVICE_LOG_WEIGHT = 'fitbit_log_weight'
+FITBIT_ATTR_WEIGHT = 'weight'
+FITBIT_ATTR_DATE = 'date'
+FITBIT_ATTR_TIME = 'time'
 
 POLAR_DOMAIN = 'polar'
-POLAR_SERVICE_LOG_WEIGHT = 'polar_log_weight'
-POLAR_ATTR_WEIGHT = 'weight'
-POLAR_ATTR_DATE = 'date'
 POLAR_CONF_EMAIL = 'email'
 POLAR_CONF_PASSWORD = 'password'
 POLAR_CONF_USER_ID = 'user_id'
-
-ATTR_DATA = 'data'
+POLAR_SERVICE_LOG_WEIGHT = 'polar_log_weight'
+POLAR_ATTR_WEIGHT = 'weight'
+POLAR_ATTR_DATE = 'date'
 
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: {
-            FITBIT_DOMAIN: {},
+            FITBIT_DOMAIN: None,
             POLAR_DOMAIN: {
                 POLAR_CONF_EMAIL: cv.string,
                 POLAR_CONF_PASSWORD: cv.string
@@ -48,16 +49,23 @@ async def async_setup(hass, config):
 
         if fitbit is not None:
             async def async_handle_fitbit_log_weight(call):
-                data = call.data.get(ATTR_DATA, None)
-                # _LOGGER.log(...)
                 """
                 https://dev.fitbit.com/build/reference/web-api/body/#log-weight
                 """
                 url = "{0}/{1}/user/-/body/log/weight.json".format(*fitbit._get_common_args())
-                return fitbit.make_request(url, data=data)
+                _LOGGER.debug(
+                    'Attempting to log weight to Fitbit: %s on %s',
+                    call.data.get(FITBIT_ATTR_WEIGHT), call.data.get(FITBIT_ATTR_DATE))
+                return fitbit.make_request(url, data=call.data)
+            
+            schema = vol.Schema({
+                vol.Required(FITBIT_ATTR_WEIGHT): vol.Coerce(float),
+                vol.Required(FITBIT_ATTR_DATE): cv.date,
+                FITBIT_ATTR_TIME: cv.time
+            })
 
             hass.services.async_register(
-                DOMAIN, FITBIT_SERVICE_LOG_WEIGHT, async_handle_fitbit_log_weight)
+                DOMAIN, FITBIT_SERVICE_LOG_WEIGHT, async_handle_fitbit_log_weight, schema=schema)
 
     if POLAR_DOMAIN in data:
         polar = await setup_polar(hass, config)

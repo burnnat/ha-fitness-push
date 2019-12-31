@@ -1,9 +1,22 @@
+fitbit_log_weight:
+  description: Log a weight reading to Fitbit.
+  fields:
+    weight:
+      description: The weight value to push (in whatever units are configured for your Fitbit account).
+      example: 163.2
+    date:
+      description: The date the weight reading was taken, in the format yyyy-MM-dd.
+      example: '2019-10-14'
+    time:
+      description: The time the weight reading was taken, in the format HH:mm:ss (optional).
+      example: '13:46:05'
+
 polar_log_weight:
   description: Log a weight reading to Polar Flow.
   fields:
-    date:
-      description: The date the weight reading was taken, in the format yyyy-mm-dd.
-      example: '2019-10-14'
     weight:
-      description: The weight value to push (in whatever units is configured for your Polar Flow account).
+      description: The weight value to push (in whatever units are configured for your Polar Flow account).
       example: 163.2
+    date:
+      description: The date the weight reading was taken, in the format yyyy-MM-dd.
+      example: '2019-10-14'
