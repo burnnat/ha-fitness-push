@@ -1,0 +1,6 @@
+{
+	"name": "Fitness Push",
+	"content_in_root": false,
+	"domains": ["fitness_push"],
+	"iot_class": "Cloud Push"
+}
